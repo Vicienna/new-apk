@@ -15,9 +15,9 @@ class Note {
   factory Note.fromMap(Map<String, dynamic> map) {
     return Note(
       id: map['id'],
-      title: map['title'],
-      content: map['content'],
-      createdAt: DateTime.parse(map['createdAt']),
+      title: map['title'] ?? 'Tanpa Judul',
+      content: map['content'] ?? '',
+      createdAt: DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now(),
     );
   }
 
