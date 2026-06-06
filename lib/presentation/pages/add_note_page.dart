@@ -24,6 +24,13 @@ class _AddNotePageState extends State<AddNotePage> {
     if (widget.initialContent != null) _contentController.text = widget.initialContent!;
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
   void _saveNote() async {
     final title = _titleController.text;
     final content = _contentController.text;
@@ -39,7 +46,15 @@ class _AddNotePageState extends State<AddNotePage> {
     if (widget.noteId == null) {
       await provider.addNote(title, content);
     } else {
-      // Logika update akan ditambahkan jika diperlukan
+      // Ambil data lama buat pertahanin tanggal pembuatan
+      final oldNote = provider.notes.firstWhere((n) => n.id == widget.noteId);
+      final updatedNote = Note(
+        id: widget.noteId,
+        title: title,
+        content: content,
+        createdAt: oldNote.createdAt, 
+      );
+      await provider.updateNote(updatedNote);
     }
     
     if (mounted) Navigator.pop(context);
