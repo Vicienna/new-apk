@@ -111,11 +111,19 @@ class _HomePageState extends State<HomePage> {
 
 class NoteSearchDelegate extends SearchDelegate {
   @override
-  List<PopupMenuEntry> buildActions(BuildContext context) {
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () => close(context, null),
+    );
+  }
+
+  @override
+  List<PopupMenuEntry<String>> buildActions(BuildContext context) {
     return [
-      PopupMenuEntry(
-        label: 'Hapus Semua',
+      PopupMenuItem<String>(
         value: 'clear',
+        child: const Text('Hapus Semua'),
       )
     ];
   }
@@ -123,8 +131,8 @@ class NoteSearchDelegate extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
     final provider = Provider.of<NoteProvider>(context);
-    final query = query.toLowerCase();
-    final results = provider.searchNotes(query);
+    final searchQuery = query.toLowerCase();
+    final results = provider.searchNotes(searchQuery);
 
     if (results.isEmpty) {
       return const Center(child: Text('Gak ada catatan yang cocok, Bro!'));
@@ -138,7 +146,7 @@ class NoteSearchDelegate extends SearchDelegate {
           title: Text(note.title),
           subtitle: Text(note.content),
           onTap: () {
-            Navigator.pop(context); // Tutup search
+            Navigator.pop(context); 
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -168,7 +176,7 @@ class NoteSearchDelegate extends SearchDelegate {
           title: Text(note.title),
           onTap: () {
             query = note.title;
-            close();
+            close(context, note.title);
           },
         );
       },
