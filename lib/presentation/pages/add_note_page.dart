@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/note_provider.dart';
+import '../../domain/entities/note.dart';
 
 class AddNotePage extends StatefulWidget {
   final int? noteId;
