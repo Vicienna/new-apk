@@ -11,11 +11,13 @@ class NoteProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addNote(String title, String content) async {
+  Future<void> addNote(String title, String content, {int color = 0xFFFFFFFF, String category = 'Umum'}) async {
     final newNote = Note(
       title: title,
       content: content,
       createdAt: DateTime.now(),
+      color: color,
+      category: category,
     );
     await DatabaseHelper.instance.create(newNote);
     await fetchNotes();
@@ -32,10 +34,19 @@ class NoteProvider with ChangeNotifier {
   }
 
   List<Note> searchNotes(String query) {
+    final lowerQuery = query.toLowerCase();
     return _notes
         .where((note) => 
-            note.title.toLowerCase().contains(query.toLowerCase()) || 
-            note.content.toLowerCase().contains(query.toLowerCase()))
+            note.title.toLowerCase().contains(lowerQuery) || 
+            note.content.toLowerCase().contains(lowerQuery) ||
+            note.category.toLowerCase().contains(lowerQuery))
         .toList();
+  }
+  
+  // Helper buat dapetin kategori unik (buat dropdown filter nanti)
+  List<String> get categories {
+    final cats = _notes.map((n) => n.category).toSet().toList();
+    cats.sort();
+    return cats;
   }
 }
