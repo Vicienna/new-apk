@@ -155,7 +155,28 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                               icon: Icon(Icons.delete_outline, color: textColor.withOpacity(0.7), size: 20),
                               onPressed: () async {
-                                await provider.deleteNote(note.id!);
+                                // FIX: Add null check untuk note.id sebelum delete
+                                if (note.id == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Tidak bisa menghapus catatan, ID tidak ditemukan')),
+                                  );
+                                  return;
+                                }
+                                
+                                try {
+                                  await provider.deleteNote(note.id!);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Catatan dihapus')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
+                                }
                               },
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -205,7 +226,8 @@ class NoteSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    final provider = Provider.of<NoteProvider>(context);
+    // FIX: Add listen: false untuk prevent unnecessary rebuilds
+    final provider = Provider.of<NoteProvider>(context, listen: false);
     final searchQuery = query.toLowerCase();
     final results = provider.searchNotes(searchQuery);
 
@@ -219,7 +241,7 @@ class NoteSearchDelegate extends SearchDelegate {
         final note = results[index];
         return ListTile(
           title: Text(note.title),
-          subtitle: Text(note.content),
+          subtitle: Text(note.content, maxLines: 1, overflow: TextOverflow.ellipsis),
           onTap: () {
             Navigator.pop(context); 
             Navigator.push(
@@ -242,7 +264,8 @@ class NoteSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final provider = Provider.of<NoteProvider>(context);
+    // FIX: Add listen: false untuk prevent unnecessary rebuilds
+    final provider = Provider.of<NoteProvider>(context, listen: false);
     final suggestions = provider.notes;
 
     return ListView.builder(
