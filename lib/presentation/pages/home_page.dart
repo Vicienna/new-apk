@@ -15,10 +15,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Load data pas app pertama kali buka
     Future.microtask(() => 
       Provider.of<NoteProvider>(context, listen: false).fetchNotes()
     );
+  }
+
+  Color _getContrastColor(int colorValue) {
+    final color = Color(colorValue);
+    return color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
   }
 
   @override
@@ -63,21 +67,16 @@ class _HomePageState extends State<HomePage> {
             itemCount: provider.notes.length,
             itemBuilder: (context, index) {
               final note = provider.notes[index];
+              final textColor = _getContrastColor(note.color);
+              final cardColor = Color(note.color);
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(note.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    note.content, 
-                    maxLines: 2, 
-                    overflow: TextOverflow.ellipsis
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () async {
-                      await provider.deleteNote(note.id!);
-                    },
-                  ),
+                color: cardColor,
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -86,10 +85,86 @@ class _HomePageState extends State<HomePage> {
                           noteId: note.id,
                           initialTitle: note.title,
                           initialContent: note.content,
+                          initialColor: note.color,
+                          initialCategory: note.category,
                         ),
                       ),
                     );
                   },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                note.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: textColor.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: textColor.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                note.category,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          note.content,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: textColor.withOpacity(0.85),
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${note.createdAt.day}/${note.createdAt.month}/${note.createdAt.year}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textColor.withOpacity(0.6),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: textColor.withOpacity(0.7), size: 20),
+                              onPressed: () async {
+                                await provider.deleteNote(note.id!);
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
@@ -154,6 +229,8 @@ class NoteSearchDelegate extends SearchDelegate {
                   noteId: note.id,
                   initialTitle: note.title,
                   initialContent: note.content,
+                  initialColor: note.color,
+                  initialCategory: note.category,
                 ),
               ),
             );
