@@ -97,25 +97,45 @@ class _AddNotePageState extends State<AddNotePage> {
     final provider = Provider.of<NoteProvider>(context, listen: false);
     final finalCategory = category.isEmpty ? 'Umum' : category;
 
-    if (widget.noteId == null) {
-      await provider.addNote(
-        title, 
-        content, 
-        color: _selectedColor, 
-        category: finalCategory,
-      );
-    } else {
-      final oldNote = provider.notes.firstWhere((n) => n.id == widget.noteId);
-      final updatedNote = oldNote.copyWith(
-        title: title,
-        content: content,
-        color: _selectedColor,
-        category: finalCategory,
-      );
-      await provider.updateNote(updatedNote);
+    try {
+      if (widget.noteId == null) {
+        await provider.addNote(
+          title, 
+          content, 
+          color: _selectedColor, 
+          category: finalCategory,
+        );
+      } else {
+        // FIX: Add null check dan error handling untuk missing note
+        final noteIndex = provider.notes.indexWhere((n) => n.id == widget.noteId);
+        if (noteIndex == -1) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Catatan tidak ditemukan, Bro!')),
+            );
+            Navigator.pop(context);
+          }
+          return;
+        }
+        
+        final oldNote = provider.notes[noteIndex];
+        final updatedNote = oldNote.copyWith(
+          title: title,
+          content: content,
+          color: _selectedColor,
+          category: finalCategory,
+        );
+        await provider.updateNote(updatedNote);
+      }
+      
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
     }
-    
-    if (mounted) Navigator.pop(context);
   }
 
   @override
