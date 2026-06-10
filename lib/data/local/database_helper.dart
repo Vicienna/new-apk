@@ -18,14 +18,30 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'zen_notes.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Bump version untuk trigger onUpgrade
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE notes(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT,
             content TEXT,
-            createdAt TEXT
+            createdAt TEXT,
+            color INTEGER,
+            category TEXT
+          )
+        ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        // Strategi Drop & Recreate (Data lama hilang)
+        await db.execute('DROP TABLE IF EXISTS notes');
+        await db.execute('''
+          CREATE TABLE notes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            content TEXT,
+            createdAt TEXT,
+            color INTEGER,
+            category TEXT
           )
         ''');
       },
